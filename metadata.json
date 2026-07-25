@@ -1,0 +1,6 @@
+{
+  "name": "AAOC Warehouse Management System",
+  "description": "Arab African Oil Company & Gabon Oil Company ERP and Warehouse Management System for oilfield materials, RMR, Manifests, GRN, and stock tracking.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
