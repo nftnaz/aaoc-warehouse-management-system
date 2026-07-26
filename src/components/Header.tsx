@@ -7,8 +7,13 @@ interface HeaderProps {
   notifications: Notification[];
   onNotificationClick: (notif: Notification) => void;
   onSearch: (query: string) => void;
+
   currentUserRole: UserRole;
-  onRoleChange: (role: UserRole) => void;
+
+  currentUser: any;
+
+  onLogout: () => void;
+
   onNavigate: (module: string) => void;
 }
 
@@ -17,7 +22,8 @@ export const Header: React.FC<HeaderProps> = ({
   onNotificationClick,
   onSearch,
   currentUserRole,
-  onRoleChange,
+  currentUser,
+  onLogout,
   onNavigate
 }) => {
   const [timeString, setTimeString] = useState('');
@@ -180,41 +186,64 @@ export const Header: React.FC<HeaderProps> = ({
                 <User className="w-4 h-4" />
               </div>
               <div className="text-left hidden xl:block leading-tight">
-                <div className="text-[11px] text-slate-500 font-semibold">Welcome,</div>
-                <div className="text-xs font-bold text-slate-800">{currentUserRole}</div>
+                <div className="text-[11px] text-slate-500 font-semibold">
+                  Welcome,
+                </div>
+
+                <div className="text-sm font-bold text-slate-800">
+                 {currentUser?.full_name ?? "User"}
+                </div>
+
+                <div className="text-[11px] text-slate-500">
+                  {currentUser?.role}
+                </div>
+
+                <div className="text-[10px] text-slate-400">
+                   {currentUser?.department}
+                 </div>
               </div>
               <ChevronDown className="w-4 h-4 text-slate-500" />
             </button>
 
             {showUserMenu && (
-              <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-slate-200 py-2 z-50">
-                <div className="px-4 py-2 border-b border-slate-100">
-                  <p className="text-xs font-bold text-slate-800">Switch Role / User Context</p>
-                  <p className="text-[10px] text-slate-500">Test engineer or warehouse supervisor views</p>
-                </div>
-                <div className="py-1">
-                  {(['Warehouse Supervisor', 'Field Engineer', 'QC Inspector', 'Logistics Manager'] as UserRole[]).map((role) => (
-                    <button
-                      key={role}
-                      onClick={() => {
-                        onRoleChange(role);
-                        setShowUserMenu(false);
-                      }}
-                      className={`w-full text-left px-4 py-2 text-xs hover:bg-blue-50 flex items-center justify-between ${
-                        currentUserRole === role ? 'font-bold text-[#024097] bg-blue-50/50' : 'text-slate-700'
-                      }`}
-                    >
-                      <span>{role}</span>
-                      {currentUserRole === role && <CheckCircle2 className="w-3.5 h-3.5 text-[#024097]" />}
-                    </button>
-                  ))}
-                </div>
-                <div className="border-t border-slate-100 mt-1 pt-1 px-4 py-1.5 text-[11px] text-slate-500 flex justify-between">
-                  <span>Dept: Logistics & Field Ops</span>
-                  <span className="font-mono text-emerald-600 font-bold">● Online</span>
-                </div>
-              </div>
-            )}
+  <div className="absolute right-0 mt-2 w-72 bg-white rounded-lg shadow-xl border border-slate-200 py-2 z-50">
+
+    <div className="px-4 py-3 border-b border-slate-100">
+      <p className="text-sm font-bold text-slate-800">
+        {currentUser?.full_name ?? "User"}
+      </p>
+
+      <p className="text-xs text-slate-500">
+        {currentUser?.email}
+      </p>
+
+      <div className="mt-2 space-y-1">
+        <p className="text-xs">
+          <span className="font-semibold">Role:</span> {currentUser?.role}
+        </p>
+
+        <p className="text-xs">
+          <span className="font-semibold">Department:</span> {currentUser?.department}
+        </p>
+
+        <p className="text-xs">
+          <span className="font-semibold">Field:</span> {currentUser?.assigned_field}
+        </p>
+      </div>
+    </div>
+
+    <button
+      onClick={() => {
+        setShowUserMenu(false);
+        onLogout();
+      }}
+      className="w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-red-50"
+    >
+      Logout
+    </button>
+
+  </div>
+)}
           </div>
 
         </div>

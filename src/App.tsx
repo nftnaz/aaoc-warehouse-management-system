@@ -11,6 +11,10 @@ import { Reports } from './components/Reports';
 import { UserManagement } from './components/UserManagement';
 import { SettingsModule } from './components/Settings';
 import { AuditTrail } from './components/AuditTrail';
+import Login from "./pages/Login";
+import { useAuth } from "./hooks/useAuth";
+import { getCurrentUserProfile } from "./services/authService";
+import { supabase } from "./lib/supabase";
 
 import {
   StockItem,
@@ -40,8 +44,10 @@ import {
 } from './data/mockData';
 
 export default function App() {
+  const { session, loading } = useAuth();
   const [activeModule, setActiveModule] = useState<string>('Dashboard');
   const [currentUserRole, setCurrentUserRole] = useState<UserRole>('Warehouse Supervisor');
+  const [currentUser, setCurrentUser] = useState<any>(null);
 
   // Persistent States
   const [stockItems, setStockItems] = useState<StockItem[]>(() => getStoredStockItems());
@@ -77,6 +83,22 @@ export default function App() {
   useEffect(() => {
     saveStoredAuditLogs(auditLogs);
   }, [auditLogs]);
+
+  // NEW: Load the logged-in user's profile
+useEffect(() => {
+  async function loadUser() {
+    if (!session) return;
+
+    const profile = await getCurrentUserProfile();
+
+    if (profile) {
+      setCurrentUser(profile);
+      setCurrentUserRole(profile.role as UserRole);
+    }
+  }
+
+  loadUser();
+}, [session]);
 
   // KPIs
   const kpis = calculateKPIs(stockItems, rmrList, manifests, grnList);
@@ -265,20 +287,42 @@ export default function App() {
 
   const approvedRMRs = rmrList.filter(r => r.status === 'Approved' || r.status === 'Submitted');
 
+  // ---------- LOGIN CHECK ----------
+if (!session) {
+  return (
+    <Login
+      onLogin={async (email, password) => {
+        const { error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+
+        if (error) {
+          alert(error.message);
+        }
+      }}
+    />
+  );
+}
+// ---------- END LOGIN CHECK ----------
+
   return (
     <div className="min-h-screen bg-slate-100 flex flex-col font-sans text-slate-900 antialiased selection:bg-[#024097] selection:text-white">
       
       {/* Fixed Top Header */}
       <Header
-        notifications={notifications}
-        onNotificationClick={handleNotificationClick}
-        onSearch={(q) => {
-          setActiveModule('Materials Stock Report');
-        }}
-        currentUserRole={currentUserRole}
-        onRoleChange={setCurrentUserRole}
-        onNavigate={setActiveModule}
-      />
+  notifications={notifications}
+  onNotificationClick={handleNotificationClick}
+  onSearch={(q) => {
+    setActiveModule('Materials Stock Report');
+  }}
+  currentUserRole={currentUserRole}
+  currentUser={currentUser}
+  onLogout={async () => {
+    await supabase.auth.signOut();
+  }}
+  onNavigate={setActiveModule}
+/>
 
       {/* Main Layout Body */}
       <div className="flex-1 flex flex-col md:flex-row w-full">
